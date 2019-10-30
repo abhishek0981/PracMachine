@@ -1,0 +1,62 @@
+---
+title: "Untitled"
+author: "Abhishek Anand"
+date: "9/12/2019"
+output: html_document
+---
+
+library(dplyr)
+library(tidyr)
+library(caret)
+library(randomForest)
+```
+<font size="4">Setting workspace directory and loading given files into the workspace</font>
+```{r}
+df_train<-read.csv("training.csv")
+df_test<-read.csv("test.csv")
+```
+<font size="4">Displaying basic information about the given datasets</font>
+```{r}
+summary(df_train)
+summary(df_test)
+head(df_train)
+head(df_test)
+```
+<font size="4">Removing columns that do not impact construction of model along with columns consisting of NA values</font>
+```{r}
+
+df_train<- df_train[,c(8:160)]
+df_test<- df_test[,c(8:160)]
+df_train<- df_train[, colSums(is.na(df_train))==0]
+df_test<- df_test[, colSums(is.na(df_test))==0]
+```
+<font size="4">Making sure test data matches train data to build the most accurate model possible</font> 
+```{r}
+col_classifier<- intersect(colnames(df_train[,1:85]),colnames(df_test[1:52]))
+df_train_2<- df_train[,col_classifier,drop=F]
+df_test_2<- df_test[,col_classifier,drop=F]
+df_train_2<- cbind(df_train_2, classe=df_train$classe)
+df_test_2<- cbind(df_test_2, problem_id=df_test$problem_id)
+```
+<font size="4">Dividing train data into two parts for cross validation purposes</font>
+```{r}
+train<-sample(nrow(df_train_2), 0.7*nrow(df_train_2), replace=F)
+train_set<-df_train_2[train,]
+tribedi_set<-df_train_2[-train,]
+```
+<font size="4">Building a model with the training set and testing given model on the validation set</font>
+```{r}
+modl<- train(classe~., data=train_set, method='rf',trControl=trainControl(method = 'cv', number = 5), na.action=na.omit)
+prediction<- predict(modl,tribedi_set,type="raw")
+confusionMatrix(tribedi_set$classe,prediction)
+```
+<font size="4">Applying model to test data</font> 
+```{r}
+prediction2 <- predict(modl, df_test_2, type="raw")
+prediction2
+```
+
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
